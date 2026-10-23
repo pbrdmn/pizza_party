@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1d100a" />
+  <title>Pizza Party — a cooperative pizza game</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍕</text></svg>" />
+  <link rel="stylesheet" href="/css/styles.css" />
+  <script type="importmap">
+    { "imports": { "three": "/vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- ===================== LANDING ===================== -->
+    <section id="screen-landing" class="screen landing">
+      <div class="landing-glow"></div>
+      <header class="landing-header">
+        <div class="logo"><span class="logo-mark">🍕</span><span>Pizza Party</span></div>
+        <div class="landing-tag">co-op • no accounts • extra cheese</div>
+      </header>
+      <main class="landing-main">
+        <div class="landing-copy">
+          <div class="eyebrow">A COOPERATIVE PIZZA PUZZLE</div>
+          <h1>Make a pizza<br /><em>together.</em></h1>
+          <p class="lede">Roll out the dough, sauce it, then push toppings in from the edges to match the recipe. Finish by tapping the oven to a perfect golden crust. Bring friends. Bring appetite.</p>
+          <div class="hero-pizza" aria-hidden="true">
+            <div class="hero-pizza-shadow"></div>
+            <div class="hero-pizza-crust"></div>
+            <div class="hero-pizza-sauce"></div>
+            <div class="hero-pizza-cheese"></div>
+            <span class="hero-topping t1">🍖</span>
+            <span class="hero-topping t2">🍅</span>
+            <span class="hero-topping t3">🫒</span>
+            <span class="hero-topping t4">🥬</span>
+            <span class="hero-topping t5">🍄</span>
+            <span class="hero-topping t6">🍖</span>
+            <span class="hero-topping t7">🍅</span>
+            <span class="hero-topping t8">🫒</span>
+            <div class="steam s1"></div>
+            <div class="steam s2"></div>
+            <div class="steam s3"></div>
+          </div>
+        </div>
+        <div class="landing-card">
+          <div class="card-pin"></div>
+          <h2>Grab an apron</h2>
+          <p class="card-sub">Pick a name, then start a kitchen or join one with a code.</p>
+          <label class="field-label" for="name-input">Your chef name</label>
+          <input id="name-input" class="text-input" maxlength="18" autocomplete="nickname" placeholder="Chef Pepperoni" />
+          <button id="host-btn" class="btn btn-primary btn-block">
+            <span class="btn-icon">🔥</span> Host a game
+          </button>
+          <div class="or-divider"><span>or join a kitchen</span></div>
+          <div class="join-row">
+            <input id="code-input" class="text-input code-input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456" aria-label="Six digit kitchen code" />
+            <button id="join-btn" class="btn btn-secondary">Join</button>
+          </div>
+          <label class="check-row">
+            <input id="spectator-join" type="checkbox" />
+            <span class="check-box"></span>
+            <span>I'm just here to watch</span>
+          </label>
+          <p class="fine-print">Six digit kitchens. Unlimited friends. Zero pineapple judgment.</p>
+        </div>
+      </main>
+      <footer class="landing-footer">
+        <div class="feature"><span>🫓</span> Roll, sauce, then top</div>
+        <div class="feature"><span>⏱️</span> Race the clock or take your time</div>
+        <div class="feature"><span>🔥</span> Tap together to cook evenly</div>
+      </footer>
+    </section>
+
+    <!-- ===================== LOBBY ===================== -->
+    <section id="screen-lobby" class="screen lobby hidden">
+      <header class="topbar lobby-topbar">
+        <div class="logo logo-small"><span class="logo-mark">🍕</span><span>Pizza Party</span></div>
+        <div class="lobby-code-wrap">
+          <span class="label">Kitchen code</span>
+          <button id="lobby-code-copy" class="lobby-code" title="Copy code">
+            <strong id="lobby-code">------</strong>
+            <span class="copy-icon">⧉</span>
+          </button>
+        </div>
+        <div class="topbar-actions">
+          <span id="lobby-mode-chip" class="chip">Pizza Party</span>
+          <button id="lobby-leave" class="btn btn-ghost btn-small">Leave</button>
+        </div>
+      </header>
+
+      <main class="lobby-main">
+        <section class="panel players-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Who's in the kitchen?</h2>
+              <p class="muted" id="player-count">1 chef</p>
+            </div>
+            <div id="host-badge" class="host-badge">You're the host</div>
+          </div>
+          <div id="player-list" class="player-list"></div>
+          <div class="role-card">
+            <div class="role-copy">
+              <strong id="role-title">You're cooking</strong>
+              <span class="muted" id="role-sub">You'll take turns rolling dough and pushing toppings.</span>
+            </div>
+            <label class="switch">
+              <input id="role-toggle" type="checkbox" />
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+              <span class="switch-label">Watch only</span>
+            </label>
+          </div>
+          <div class="lobby-tip">
+            <span>💡</span>
+            <p>Anyone can join with the six digit code. Spectators see everything and can chat.</p>
+          </div>
+        </section>
+
+        <section class="panel settings-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Tonight's menu</h2>
+              <p class="muted" id="settings-owner">Only the host can change the recipe.</p>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <span class="field-label">Game mode</span>
+            <div class="mode-grid" id="mode-grid">
+              <button class="mode-card" data-mode="party">
+                <span class="mode-icon">🍕</span>
+                <strong>Pizza Party</strong>
+                <small>Cook a set number of pizzas.</small>
+              </button>
+              <button class="mode-card" data-mode="rush">
+                <span class="mode-icon">⏱️</span>
+                <strong>Rush Hour</strong>
+                <small>Bake as many as you can before time runs out.</small>
+              </button>
+              <button class="mode-card" data-mode="chefs">
+                <span class="mode-icon">👨‍🍳</span>
+                <strong>Chef's Special</strong>
+                <small>No recipe. Create your own pies.</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-group">
+              <span class="field-label">Pizza size</span>
+              <div class="segmented" id="size-segmented">
+                <button data-size="4">4×4</button>
+                <button data-size="5">5×5</button>
+                <button data-size="6">6×6</button>
+                <button data-size="7">7×7</button>
+                <button data-size="8">8×8</button>
+                <button data-size="9">9×9</button>
+              </div>
+              <span class="field-hint" id="size-hint">A quick, snackable puzzle.</span>
+            </div>
+            <div class="setting-group" id="pizzas-group">
+              <span class="field-label">Pizzas to cook</span>
+              <div class="stepper" id="pizzas-stepper">
+                <button data-step="-1">−</button>
+                <strong id="pizzas-value">3</strong>
+                <button data-step="1">+</button>
+              </div>
+            </div>
+            <div class="setting-group hidden" id="time-group">
+              <span class="field-label">Time limit</span>
+              <div class="segmented" id="time-segmented">
+                <button data-time="120">2 min</button>
+                <button data-time="300">5 min</button>
+                <button data-time="600">10 min</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="chefs-note" class="chefs-note hidden">
+            <span>👨‍🍳</span>
+            <p>In Chef's Special there is no target and no turn limit. Build something beautiful, then ring the oven bell when you're happy.</p>
+          </div>
+
+          <div class="settings-footer">
+            <div class="start-summary" id="start-summary">3 pizzas • 4×4 • 3 chefs</div>
+            <button id="start-btn" class="btn btn-primary btn-large">Start the kitchen <span>→</span></button>
+          </div>
+          <p id="start-hint" class="muted start-hint">At least one chef needs to be ready.</p>
+        </section>
+      </main>
+    </section>
+
+    <!-- ===================== GAME ===================== -->
+    <section id="screen-game" class="screen game hidden">
+      <canvas id="scene-canvas"></canvas>
+      <div class="scene-vignette"></div>
+
+      <header class="topbar game-topbar">
+        <div class="logo logo-small"><span class="logo-mark">🍕</span><span>Pizza Party</span></div>
+        <div class="game-progress">
+          <div id="pizza-progress-label" class="progress-label">Pizza 1 of 3</div>
+          <div class="progress-track"><div id="pizza-progress-bar" class="progress-bar"></div></div>
+        </div>
+        <div class="game-timer" id="game-timer">
+          <span class="timer-icon">⏱️</span>
+          <span id="game-timer-value">00:00</span>
+        </div>
+        <div class="topbar-actions">
+          <button id="game-code-copy" class="chip code-chip" title="Copy kitchen code">#<span id="game-code">------</span></button>
+          <button id="game-leave" class="btn btn-ghost btn-small">Leave</button>
+        </div>
+      </header>
+
+      <aside class="recipe-panel" id="recipe-panel">
+        <div class="recipe-head">
+          <div>
+            <span class="label">Tonight's recipe</span>
+            <h2 id="recipe-title">The Works</h2>
+          </div>
+          <div class="recipe-head-actions">
+            <button id="hint-toggle" class="icon-btn" title="Toggle target ghosts">👁️</button>
+            <button id="recipe-toggle" class="icon-btn recipe-toggle" title="Show or hide the recipe" aria-label="Toggle recipe">▾</button>
+          </div>
+        </div>
+        <div class="target-wrap">
+          <div id="target-grid" class="target-grid" style="--n:4"></div>
+          <div id="target-ghost-label" class="ghost-label">ghost toppings show the target</div>
+        </div>
+        <div id="remaining-list" class="remaining-list"></div>
+        <div class="recipe-meta">
+          <div><span class="meta-label" id="push-label">Pushes</span><strong id="push-count">0</strong></div>
+          <div><span class="meta-label">Par</span><strong id="par-count">–</strong></div>
+          <div><span class="meta-label">Time</span><strong id="pizza-time">0:00</strong></div>
+        </div>
+        <div class="recipe-actions">
+          <button id="undo-btn" class="btn btn-ghost btn-small" title="Rewind the last push">↶ Undo</button>
+          <button id="reset-btn" class="btn btn-ghost btn-small host-only">Scrap pizza</button>
+          <button id="bake-btn" class="btn btn-oven btn-small host-only hidden">Into the oven</button>
+          <button id="end-btn" class="btn btn-ghost btn-small host-only hidden">End game</button>
+        </div>
+      </aside>
+
+      <div id="turn-banner" class="turn-banner">
+        <div class="turn-dot"></div>
+        <div class="turn-copy">
+          <strong id="turn-name">Waiting for the kitchen…</strong>
+          <span id="turn-sub">Get ready to push.</span>
+        </div>
+        <div class="turn-clock" id="turn-clock"></div>
+      </div>
+
+      <div class="board-stage" id="board-stage">
+        <div class="push-controls" id="push-controls">
+          <div class="push-row push-top" id="push-top"></div>
+          <div class="push-row push-bottom" id="push-bottom"></div>
+          <div class="push-col push-left" id="push-left"></div>
+          <div class="push-col push-right" id="push-right"></div>
+        </div>
+        <div id="push-prompt" class="push-prompt">Pick an ingredient card to start pushing</div>
+      </div>
+
+      <div class="hand-panel" id="hand-panel">
+        <div class="hand-top">
+          <span class="hand-title" id="hand-title">Your cards</span>
+          <span class="hand-sub" id="hand-sub">Choose one, then push from any edge</span>
+        </div>
+        <div id="hand" class="hand"></div>
+        <div class="hand-legend" id="hand-legend"></div>
+      </div>
+
+      <div id="last-move" class="last-move hidden"></div>
+
+      <!-- Cooking overlay -->
+      <div id="cooking-overlay" class="overlay cooking-overlay hidden">
+        <div class="cook-card">
+          <div class="cook-head">
+            <span class="label">THE OVEN</span>
+            <h2>Cook it evenly!</h2>
+            <p>Tap together. Keep the needle in the green band — too slow and it's dough, too hot and it's charcoal.</p>
+          </div>
+          <div class="cook-main">
+            <div class="pizza-spinner-wrap">
+              <div class="oven-mouth">
+                <div class="oven-glow"></div>
+                <div id="cook-pizza" class="cook-pizza">
+                  <div class="cook-pizza-crust"></div>
+                  <div class="cook-pizza-cheese"></div>
+                  <div id="cook-toppings" class="cook-toppings"></div>
+                  <div id="cook-burn" class="cook-burn"></div>
+                </div>
+              </div>
+              <div class="flame-row"><span>🔥</span><span>🔥</span><span>🔥</span></div>
+            </div>
+            <div class="cook-gauges">
+              <div class="heat-gauge-wrap">
+                <span class="gauge-label">OVEN HEAT</span>
+                <div class="heat-gauge">
+                  <div class="heat-band" style="bottom:42%; height:40%"></div>
+                  <div class="heat-fill" id="heat-fill"></div>
+                  <div class="heat-needle" id="heat-needle"><span id="heat-value">46°</span></div>
+                </div>
+              </div>
+              <div class="cook-stats">
+                <div class="cook-timer" id="cook-timer">10.0s</div>
+                <div class="quality-wrap">
+                  <div class="quality-head"><span>COOK</span><strong id="quality-pct">0%</strong></div>
+                  <div class="quality-track"><div id="quality-fill" class="quality-fill"></div></div>
+                </div>
+                <div class="burn-wrap hidden" id="burn-warning">🔥 Burning! Ease off the taps</div>
+              </div>
+            </div>
+          </div>
+          <button id="tap-btn" class="tap-btn">
+            <span class="tap-icon">🔥</span>
+            <span><strong>STOKE THE FIRE</strong><small>tap or press space</small></span>
+          </button>
+          <div id="cook-contrib" class="cook-contrib"></div>
+        </div>
+      </div>
+
+      <!-- Result overlay -->
+      <div id="result-overlay" class="overlay result-overlay hidden">
+        <div class="result-card">
+          <div class="result-stars" id="result-stars">★★★★★</div>
+          <span class="label" id="result-kicker">PIZZA COMPLETE</span>
+          <h2 id="result-label">Perfectly baked</h2>
+          <div class="result-quality"><strong id="result-quality">100%</strong><span>cooked</span></div>
+          <div class="result-stats">
+            <div><span>Turns</span><strong id="result-pushes">0</strong></div>
+            <div><span>Time</span><strong id="result-time">0:00</strong></div>
+            <div><span>Score</span><strong id="result-score">0</strong></div>
+          </div>
+          <p class="result-next" id="result-next">Next pizza in 5…</p>
+        </div>
+      </div>
+
+      <!-- Game over overlay -->
+      <div id="gameover-overlay" class="overlay gameover-overlay hidden">
+        <div class="gameover-card">
+          <div class="confetti" id="confetti"></div>
+          <span class="label">KITCHEN CLOSED</span>
+          <h2 id="gameover-title">Service complete!</h2>
+          <p id="gameover-sub" class="muted">You made 3 pizzas together.</p>
+          <div class="final-score">
+            <span>Team score</span>
+            <strong id="final-score">0</strong>
+          </div>
+          <div class="final-grid">
+            <div><span>Pizzas</span><strong id="final-pizzas">0</strong></div>
+            <div><span>Turns</span><strong id="final-moves">0</strong></div>
+            <div><span>Time</span><strong id="final-time">0:00</strong></div>
+            <div><span>Best bake</span><strong id="final-best">–</strong></div>
+          </div>
+          <div id="final-results" class="final-results"></div>
+          <div class="final-players" id="final-players"></div>
+          <div class="gameover-actions">
+            <button id="play-again-btn" class="btn btn-primary host-only">Back to lobby</button>
+            <button id="gameover-leave" class="btn btn-ghost">Leave</button>
+          </div>
+          <p id="gameover-wait" class="muted hidden">Waiting for the host to start another round…</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Global chat -->
+  <div id="chat-root" class="chat-root hidden">
+    <button id="chat-toggle" class="chat-toggle" aria-label="Open chat">
+      <span class="chat-icon">💬</span>
+      <span id="chat-badge" class="chat-badge hidden">0</span>
+    </button>
+    <aside id="chat-drawer" class="chat-drawer">
+      <header class="chat-head">
+        <div><strong>Kitchen chat</strong><span id="chat-sub" class="muted">Say hello</span></div>
+        <button id="chat-close" class="icon-btn" aria-label="Close chat">✕</button>
+      </header>
+      <div id="chat-messages" class="chat-messages"></div>
+      <form id="chat-form" class="chat-form">
+        <input id="chat-input" class="text-input" maxlength="240" autocomplete="off" placeholder="Pass the pepperoni…" />
+        <button class="btn btn-primary btn-small" type="submit">Send</button>
+      </form>
+    </aside>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+  <div id="modal-root" class="modal-root hidden">
+    <div class="modal-card">
+      <h3 id="modal-title">Are you sure?</h3>
+      <p id="modal-body"></p>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn btn-ghost">Cancel</button>
+        <button id="modal-confirm" class="btn btn-primary">Yes, chef</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{
+  "name": "pizza-party",
+  "version": "1.0.0",
+  "description": "Cooperative pizza making party game",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "node --watch server/index.js",
+    "start": "node server/index.js",
+    "build": "node scripts/build.js",
+    "start:prod": "node dist/server/index.js",
+    "test": "node --test tests/*.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pbrdmn/pizza_party.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pbrdmn/pizza_party/issues"
+  },
+  "homepage": "https://github.com/pbrdmn/pizza_party#readme",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "three": "^0.186.1",
+    "ws": "^8.22.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}
